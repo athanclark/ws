@@ -1,21 +1,38 @@
 # ws
 
-TODO: Write description here
+A really trivial websocket client for debugging and testing.
 
-## Installation
+## Installation / Building
 
-TODO: Write installation instructions here
+```bash
+git clone http://github.com/athanclark/ws
+```
+
+Then depending on your build system:
+
+```bash
+stack install
+```
+
+or
+
+```bash
+cabal install
+```
+
+> It _should_ work with either, but if you run into issues, don't hesitate to
+> file an issue.
+
 
 ## Usage
 
-TODO: Write usage instructions here
-
-## How to run tests
-
 ```
-cabal configure --enable-tests && cabal build && cabal test
+ws --url ws://echo.websocket.org/
+
+test
+test
+ayoo
+ayoo
 ```
 
-## Contributing
 
-TODO: Write contribution instructions here
