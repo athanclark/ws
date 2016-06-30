@@ -23,7 +23,6 @@ import Control.Concurrent (forkIO)
 app :: MonadApp m => m ()
 app = do
   env <- ask
-  liftIO $ print env
   liftIO $ runSecureClient
              (envHost env)
              (envPort env)
