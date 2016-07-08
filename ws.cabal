@@ -16,11 +16,13 @@ Library
   Exposed-Modules:      App
                         App.Types
   Build-Depends:        base >= 4.8 && < 5
+                      , async
                       , bytestring
                       , exceptions
                       , mtl
                       , network
                       , network-uri
+                      , stm
                       , text
                       , websockets
                       , wuss
@@ -33,12 +35,14 @@ Executable ws
   Other-Modules:        App
                         App.Types
   Build-Depends:        base
+                      , async
                       , bytestring
                       , exceptions
                       , mtl
                       , network
                       , network-uri
                       , optparse-applicative
+                      , stm
                       , text
                       , websockets
                       , wuss
