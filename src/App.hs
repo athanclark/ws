@@ -42,33 +42,32 @@ app = do
     -- totally ripped off from
     -- https://hackage.haskell.org/package/wuss-1.0.4/docs/Wuss.html
     ws :: ClientApp ()
-    ws conn =
-      let close = sendClose conn ("Bye!" :: T.Text)
-      in  finally close $ do
-            -- always listen for incoming messages in a separate thread
-            let listen = forever $ do
-                  message <- receiveDataMessage conn
-                  let bs = case message of
-                            Text   x -> x
-                            Binary x -> x
-                  case LT.decodeUtf8' bs of
-                    Left e -> do
-                      hPutStrLn stderr $ "[Warn] Decode Error: " ++ show e
-                      LBS.putStrLn bs
-                    Right t ->
-                      LT.putStrLn t
+    ws conn = do
+      -- always listen for incoming messages in a separate thread
+      let listen = forever $ do
+            message <- receiveDataMessage conn
+            let bs = case message of
+                      Text   x -> x
+                      Binary x -> x
+            case LT.decodeUtf8' bs of
+              Left e -> do
+                hPutStrLn stderr $ "[Warn] UTF8 Decode Error: " ++ show e
+                LBS.putStrLn bs
+              Right t ->
+                LT.putStrLn t
 
-            -- always listen for outgoing messages in the main thread
-            let sender = forever $ do
-                  userInput <- LT.getLine
-                  unless (userInput == "") $
-                    sendTextData conn userInput
+      -- always listen for outgoing messages in the main thread
+      let sender = forever $ do
+            userInput <- LT.getLine
+            unless (userInput == "") $
+              sendTextData conn userInput
 
-            withAsync listen $ \l ->
-              withAsync sender $ \s -> do
-                void $ wait l
-                void $ wait s
+      withAsync listen $ \l ->
+        withAsync sender $ \s -> do
+          void $ wait l
+          void $ wait s
 
+      sendClose conn ("Bye from ws!" :: T.Text)
 
 
 handleConnException :: ConnectionException -> IO a
