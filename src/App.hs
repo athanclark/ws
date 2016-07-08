@@ -17,10 +17,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Monad.Catch
-import Control.Concurrent
 import Control.Concurrent.Async
-import Control.Concurrent.STM
-import Control.Concurrent.STM.TMVar
 import System.IO
 import System.Exit
 
@@ -28,8 +25,8 @@ import System.Exit
 app :: MonadApp m => m ()
 app = do
   env <- ask
-  liftIO $ do
-    handle handleConnException $ do
+  liftIO $
+    handle handleConnException $
       if envSecure env
       then runSecureClient
             (envHost env)
@@ -62,13 +59,13 @@ app = do
                       LT.putStrLn t
 
             -- always listen for outgoing messages in the main thread
-            let send = forever $ do
+            let sender = forever $ do
                   userInput <- LT.getLine
                   unless (userInput == "") $
                     sendTextData conn userInput
 
             withAsync listen $ \l ->
-              withAsync send $ \s -> do
+              withAsync sender $ \s -> do
                 void $ wait l
                 void $ wait s
 
@@ -78,6 +75,8 @@ handleConnException :: ConnectionException -> IO a
 handleConnException e =
   case e of
     CloseRequest c m -> do
+      hPutStrLn stderr $ "[Info] Closing with code " ++ show c
+                      ++ " and message " ++ show m
       exitSuccess
     ConnectionClosed -> do
       hPutStrLn stderr "[Error] Connection closed unexpectedly"

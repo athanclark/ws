@@ -22,7 +22,6 @@ Library
                       , mtl
                       , network
                       , network-uri
-                      , stm
                       , text
                       , websockets
                       , wuss
@@ -42,7 +41,6 @@ Executable ws
                       , network
                       , network-uri
                       , optparse-applicative
-                      , stm
                       , text
                       , websockets
                       , wuss

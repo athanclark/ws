@@ -1,6 +1,5 @@
 {-# LANGUAGE
-    DeriveGeneric
-  , ScopedTypeVariables
+    ScopedTypeVariables
   , FlexibleContexts
   #-}
 
@@ -74,13 +73,13 @@ appOptsToEnv (AppOpts u) =
                 else if uriScheme u' == "wss:"
                 then 443 :: Int
                 else 80
-              path =
+              path' =
                 let p = uriPath u'
                 in if p == ""
                 then "/"
                 else p
           in  pure Env { envHost   = host
                        , envPort   = port
-                       , envPath   = path
+                       , envPath   = path'
                        , envSecure = uriScheme u' == "wss:"
                        }

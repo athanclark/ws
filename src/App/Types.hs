@@ -6,8 +6,6 @@
 
 module App.Types where
 
-import Network.URI
-
 import Control.Monad.Reader
 import Control.Monad.Catch
 
