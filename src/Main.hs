@@ -11,10 +11,7 @@ import App.Types
 import Options.Applicative
 import Network.URI
 
-import Data.Maybe
 import Data.Monoid
-import Text.Read
-import Control.Monad.Reader
 import Control.Monad.Catch
 
 
@@ -25,26 +22,33 @@ data AppOpts = AppOpts
   { url :: String
   }
 
+-- | Options for each field
 appOpts :: Parser AppOpts
-appOpts = AppOpts
-  <$> strOption
-        ( long "url"
-       <> short 'u'
-       <> metavar "TARGET"
-       <> help "The websocket address to connect to - example:\
-               \ `ws://localhost:3000/foo`" )
+appOpts =
+  AppOpts <$> urlOpt
+  where
+    urlOpt :: Parser String
+    urlOpt = strOption $
+         long "url"
+      <> short 'u'
+      <> metavar "TARGET"
+      <> help "The websocket address to connect to - example:\
+                \ `ws://localhost:3000/foo`"
+
+
+-- | Options for entire app
+opts :: ParserInfo AppOpts
+opts = info (helper <*> appOpts) $
+    fullDesc
+ <> progDesc "Connect to a websocket"
+ <> header "ws - a CLI websocket tool"
+
 
 
 -- * Executable
 
 main :: IO ()
 main = do
-  let opts :: ParserInfo AppOpts
-      opts = info (helper <*> appOpts)
-        ( fullDesc
-       <> progDesc "Connect to a websocket"
-       <> header "ws - a CLI websocket tool" )
-
   env <- handle handleInitException
        $ appOptsToEnv =<< execParser opts
 
@@ -52,9 +56,7 @@ main = do
 
 
 
-
--- | Note that this function will fail to pattern match on @Nothing@'s - use
--- @def@ beforehand.
+-- | Translate the CLI parsed options to a sane type we can use in our app
 appOptsToEnv :: AppOpts -> IO Env
 appOptsToEnv (AppOpts u) =
   case parseURI u of
@@ -70,14 +72,15 @@ appOptsToEnv (AppOpts u) =
                 in if ps /= ""
                 then read ps
                 else if uriScheme u' == "wss:"
-                then 443
+                then 443 :: Int
                 else 80
               path =
                 let p = uriPath u'
                 in if p == ""
                 then "/"
                 else p
-          in  pure Env { envHost = host
-                       , envPort = port
-                       , envPath = path
+          in  pure Env { envHost   = host
+                       , envPort   = port
+                       , envPath   = path
+                       , envSecure = uriScheme u' == "wss:"
                        }

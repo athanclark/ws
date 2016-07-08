@@ -21,9 +21,10 @@ import GHC.Generics
 -- * Config Data
 
 data Env = Env
-  { envHost :: HostName
-  , envPort :: PortNumber
-  , envPath :: String
+  { envHost   :: HostName
+  , envPort   :: PortNumber
+  , envPath   :: String
+  , envSecure :: Bool
   } deriving (Show, Eq)
 
 

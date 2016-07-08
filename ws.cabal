@@ -16,6 +16,7 @@ Library
   Exposed-Modules:      App
                         App.Types
   Build-Depends:        base >= 4.8 && < 5
+                      , bytestring
                       , exceptions
                       , mtl
                       , network
@@ -32,6 +33,7 @@ Executable ws
   Other-Modules:        App
                         App.Types
   Build-Depends:        base
+                      , bytestring
                       , exceptions
                       , mtl
                       , network
