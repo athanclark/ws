@@ -5,19 +5,19 @@
 
 module Main where
 
-import App
-import App.Types
-import Options.Applicative
-import Network.URI
+import App (app)
+import App.Types (Env (Env, envHost, envPort, envPath, envSecure), runAppM, handleInitException, InitException (NoURIAuthority, URIParseException))
+import Options.Applicative (Parser, strArgument, ParserInfo, metavar, help, fullDesc, progDesc, header, helper, info, execParser)
+import Network.URI (parseURI, uriAuthority, uriRegName, uriUserInfo, uriScheme, uriPath, uriPort)
 
-import Data.Monoid
-import Control.Monad.Catch
+import Data.Monoid ((<>))
+import Control.Monad.Catch (throwM, handle)
 
 
 -- * Options Parsing
 
 -- | Application-wide options
-data AppOpts = AppOpts
+newtype AppOpts = AppOpts
   { url :: String
   }
 
@@ -27,10 +27,8 @@ appOpts =
   AppOpts <$> urlOpt
   where
     urlOpt :: Parser String
-    urlOpt = strOption $
-         long "url"
-      <> short 'u'
-      <> metavar "TARGET"
+    urlOpt = strArgument $
+         metavar "TARGET"
       <> help "The websocket address to connect to - example:\
                 \ `ws://localhost:3000/foo`"
 

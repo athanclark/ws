@@ -27,10 +27,10 @@ cabal install
 ## Usage
 
 ```
-ws --url ws://echo.websocket.org/
+ws ws://echo.websocket.org/
 
+ws://echo.websocket.org/> test
 test
-test
-ayoo
+ws://echo.websocket.org/> ayoo
 ayoo
 ```

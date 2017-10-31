@@ -6,14 +6,16 @@
 
 module App.Types where
 
-import Control.Monad.Reader
-import Control.Monad.Catch
+import Control.Monad.Reader (ReaderT (runReaderT), MonadReader)
+import Control.Monad.Catch (Exception)
+import Control.Monad.IO.Class (MonadIO)
 
-import System.IO
-import System.Exit
+import System.IO (hPutStr, stderr)
+import System.Exit (exitFailure)
+import System.Console.Haskeline (InputT, runInputT, defaultSettings)
 import Network.Socket (HostName, PortNumber)
 
-import GHC.Generics
+import GHC.Generics (Generic)
 
 
 -- * Config Data
@@ -28,15 +30,10 @@ data Env = Env
 
 -- * Effects Stack
 
-type AppM = ReaderT Env IO
+type AppM = InputT (ReaderT Env IO)
 
 runAppM :: Env -> AppM a -> IO a
-runAppM env x = runReaderT x env
-
-type MonadApp m =
-  ( MonadReader Env m
-  , MonadIO m
-  )
+runAppM env x = runReaderT (runInputT defaultSettings x) env
 
 
 -- * Exceptions

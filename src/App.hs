@@ -5,62 +5,75 @@
 
 module App where
 
-import App.Types
+import App.Types (AppM, Env (envSecure, envHost, envPort, envPath))
 
-import Network.WebSockets
-import Wuss
+import Network.WebSockets (ClientApp, DataMessage (Text, Binary), ConnectionException (CloseRequest, ConnectionClosed, ParseException), runClient, receiveDataMessage, sendTextData, sendClose)
+import Wuss (runSecureClient)
 
 import qualified Data.Text                  as T
+import qualified Data.Text.Lazy             as LT
 import qualified Data.Text.Lazy.Encoding    as LT
-import qualified Data.Text.Lazy.IO          as LT
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Control.Monad.IO.Class
-import Control.Monad.Reader
-import Control.Monad.Catch
-import Control.Concurrent.Async
-import System.IO
-import System.Exit
+import Data.Monoid ((<>))
+import Control.Monad (forever, unless, void)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader (ask)
+import Control.Monad.Trans (lift)
+import Control.Monad.Catch (handle)
+import Control.Concurrent.Async (async, withAsync, wait)
+import Control.Concurrent.Chan (Chan, newChan, writeChan, readChan)
+import System.Exit (exitSuccess, exitFailure)
+import System.Console.Haskeline (getExternalPrint, getInputLine)
 
 
-app :: MonadApp m => m ()
+app :: AppM ()
 app = do
-  env <- ask
-  liftIO $
-    handle handleConnException $
+  print' <- getExternalPrint
+  env <- lift ask
+
+  outgoingChan <- liftIO newChan
+
+  _ <- liftIO $ async $
+    handle (handleConnException print') $
       if envSecure env
       then runSecureClient
             (envHost env)
             (envPort env)
             (envPath env)
-            ws
+            (ws print' outgoingChan)
       else runClient
             (envHost env)
             (fromIntegral $ envPort env)
             (envPath env)
-            ws
+            (ws print' outgoingChan)
+
+  forever $ do
+    mx <- getInputLine $ T.unpack $ (if envSecure env then "wss" else "ws")
+                           <> "://" <> T.pack (envHost env)
+                           <> ":" <> T.pack (show (envPort env)) <> T.pack (envPath env) <> "> "
+    case mx of
+      Nothing -> pure ()
+      Just x -> liftIO $ writeChan outgoingChan x
   where
     -- totally ripped off from
     -- https://hackage.haskell.org/package/wuss-1.0.4/docs/Wuss.html
-    ws :: ClientApp ()
-    ws conn = do
+    ws :: (String -> IO ()) -> Chan String -> ClientApp ()
+    ws print' outgoingChan conn = do
       -- always listen for incoming messages in a separate thread
       let listen = forever $ do
             message <- receiveDataMessage conn
             let bs = case message of
                       Text   x -> x
                       Binary x -> x
-            case LT.decodeUtf8' bs of
-              Left e -> do
-                hPutStrLn stderr $ "[Warn] UTF8 Decode Error: " ++ show e
-                LBS.putStrLn bs
-              Right t ->
-                LT.putStrLn t
+            print' $ case LT.decodeUtf8' bs of
+              Left e -> "[Warn] UTF8 Decode Error: " ++ show e
+              Right t -> LT.unpack t
 
       -- always listen for outgoing messages in the main thread
       let sender = forever $ do
-            userInput <- LT.getLine
+            userInput <- readChan outgoingChan
             unless (userInput == "") $
-              sendTextData conn userInput
+              sendTextData conn (T.pack userInput)
 
       withAsync listen $ \l ->
         withAsync sender $ \s -> do
@@ -70,16 +83,16 @@ app = do
       sendClose conn ("Bye from ws!" :: T.Text)
 
 
-handleConnException :: ConnectionException -> IO a
-handleConnException e =
+handleConnException :: (String -> IO ()) -> ConnectionException -> IO a
+handleConnException print' e =
   case e of
     CloseRequest c m -> do
-      hPutStrLn stderr $ "[Info] Closing with code " ++ show c
-                      ++ " and message " ++ show m
+      print' $ "[Info] Closing with code " ++ show c
+            ++ " and message " ++ show m
       exitSuccess
     ConnectionClosed -> do
-      hPutStrLn stderr "[Error] Connection closed unexpectedly"
+      print' "[Error] Connection closed unexpectedly"
       exitFailure
     ParseException s -> do
-      hPutStrLn stderr $ "[Error] Websocket stream parse failure: " ++ s
+      print' $ "[Error] Websocket stream parse failure: " ++ s
       exitFailure
