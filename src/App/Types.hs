@@ -6,9 +6,8 @@
 
 module App.Types where
 
-import Control.Monad.Reader (ReaderT (runReaderT), MonadReader)
+import Control.Monad.Reader (ReaderT (runReaderT))
 import Control.Monad.Catch (Exception)
-import Control.Monad.IO.Class (MonadIO)
 
 import System.IO (hPutStr, stderr)
 import System.Exit (exitFailure)

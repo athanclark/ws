@@ -13,7 +13,6 @@ import Wuss (runSecureClient)
 import qualified Data.Text                  as T
 import qualified Data.Text.Lazy             as LT
 import qualified Data.Text.Lazy.Encoding    as LT
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Monoid ((<>))
 import Control.Monad (forever, unless, void)
 import Control.Monad.IO.Class (liftIO)

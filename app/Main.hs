@@ -12,13 +12,14 @@ import Network.URI (parseURI, uriAuthority, uriRegName, uriUserInfo, uriScheme, 
 
 import Data.Monoid ((<>))
 import Control.Monad.Catch (throwM, handle)
+import Control.Applicative (optional)
 
 
 -- * Options Parsing
 
 -- | Application-wide options
 newtype AppOpts = AppOpts
-  { url :: String
+  { url :: Maybe String
   }
 
 -- | Options for each field
@@ -26,8 +27,8 @@ appOpts :: Parser AppOpts
 appOpts =
   AppOpts <$> urlOpt
   where
-    urlOpt :: Parser String
-    urlOpt = strArgument $
+    urlOpt :: Parser (Maybe String)
+    urlOpt = optional $ strArgument $
          metavar "TARGET"
       <> help "The websocket address to connect to - example:\
                 \ `ws://localhost:3000/foo`"
@@ -55,7 +56,12 @@ main = do
 
 -- | Translate the CLI parsed options to a sane type we can use in our app
 appOptsToEnv :: AppOpts -> IO Env
-appOptsToEnv (AppOpts u) =
+appOptsToEnv (AppOpts mu) = do
+  u <- case mu of
+    Nothing -> do
+      putStrLn "Websocket URI: "
+      getLine
+    Just x -> pure x
   case parseURI u of
     Nothing -> throwM $ URIParseException u
     Just u' ->
