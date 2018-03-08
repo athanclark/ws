@@ -19,7 +19,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Control.Monad.Trans (lift)
 import Control.Monad.Catch (handle)
-import Control.Concurrent.Async (async, withAsync, wait)
+import Control.Concurrent.Async (async, link, withAsync, wait)
 import Control.Concurrent.Chan (Chan, newChan, writeChan, readChan)
 import System.Exit (exitSuccess, exitFailure)
 import System.Console.Haskeline (getExternalPrint, getInputLine)
@@ -32,7 +32,7 @@ app = do
 
   outgoingChan <- liftIO newChan
 
-  _ <- liftIO $ async $
+  mainThread <- liftIO $ async $
     handle (handleConnException print') $
       if envSecure env
       then runSecureClient
@@ -45,6 +45,8 @@ app = do
             (fromIntegral $ envPort env)
             (envPath env)
             (ws print' outgoingChan)
+
+  liftIO (link mainThread)
 
   forever $ do
     mx <- getInputLine $ T.unpack $ (if envSecure env then "wss" else "ws")
