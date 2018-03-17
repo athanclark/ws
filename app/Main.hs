@@ -1,14 +1,22 @@
 {-# LANGUAGE
     ScopedTypeVariables
   , FlexibleContexts
+  , NamedFieldPuns
+  , OverloadedStrings
   #-}
 
 module Main where
 
 import App (app)
-import App.Types (Env (Env, envHost, envPort, envPath, envSecure), runAppM, handleInitException, InitException (NoURIAuthority, URIParseException))
+import App.Types (Env (..), runAppM, handleInitException, InitException (..))
 import Options.Applicative (Parser, strArgument, ParserInfo, metavar, help, fullDesc, progDesc, header, helper, info, execParser)
-import Network.URI (parseURI, uriAuthority, uriRegName, uriUserInfo, uriScheme, uriPath, uriPort)
+import qualified Data.Text as T
+import qualified Data.Vector as V
+import qualified Data.Strict.Maybe as Strict
+import Data.Strict.Tuple (Pair (..))
+import Data.URI (URI (..), parseURI)
+import Data.URI.Auth (URIAuth (..), printURIAuth)
+import Data.Attoparsec.Text (parseOnly)
 
 import Data.Monoid ((<>))
 import Control.Monad.Catch (throwM, handle)
@@ -62,28 +70,32 @@ appOptsToEnv (AppOpts mu) = do
       putStrLn "Websocket URI: "
       getLine
     Just x -> pure x
-  case parseURI u of
-    Nothing -> throwM $ URIParseException u
-    Just u' ->
-      case uriAuthority u' of
-        Nothing -> throwM $ NoURIAuthority u
-        Just a ->
-          let host = uriUserInfo a
-                  ++ uriRegName a
-              port = fromIntegral $
-                let ps = drop 1 (uriPort a)
-                in if ps /= ""
-                then read ps
-                else if uriScheme u' == "wss:"
-                then 443 :: Int
-                else 80
-              path' =
-                let p = uriPath u'
-                in if p == ""
-                then "/"
-                else p
+  case parseOnly parseURI (T.pack u) of
+    Left _ -> throwM $ URIParseException u
+    Right URI
+      { uriScheme
+      , uriAuthority = URIAuth
+        { uriAuthUser
+        , uriAuthHost
+        , uriAuthPort
+        }
+      , uriPath
+      , uriQuery
+      } ->
+          let host = T.unpack $ printURIAuth URIAuth {uriAuthUser,uriAuthHost,uriAuthPort = Strict.Nothing}
+              port = case uriAuthPort of
+                Strict.Nothing
+                  | uriScheme == Strict.Just "wss" -> 433
+                  | otherwise -> 80
+                Strict.Just p -> fromIntegral p
+              path' = T.unpack $
+                "/" <> T.intercalate "/" (V.toList uriPath) <>
+                ( if V.null uriQuery
+                  then ""
+                  else "?" <> T.intercalate "&" ((\(k :!: mv) -> k <> Strict.maybe "" ("=" <>) mv) <$> V.toList uriQuery)
+                )
           in  pure Env { envHost   = host
                        , envPort   = port
                        , envPath   = path'
-                       , envSecure = uriScheme u' == "wss:"
+                       , envSecure = uriScheme == Strict.Just "wss"
                        }

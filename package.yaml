@@ -1,0 +1,55 @@
+name:                ws
+version:             0.0.4
+github:              athanclark/ws
+license:             BSD3
+author:              "Athan Clark"
+maintainer:          "athan.clark@localcooking.com"
+copyright:           "2018 Athan Clark"
+category:            Web
+synopsis:            A simple CLI utility for interacting with a websocket
+
+ghc-options: -Wall
+
+extra-source-files:
+- README.md
+
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://git.localcooking.com/tooling/ws#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- attoparsec-uri
+- async
+- bytestring
+- exceptions
+- haskeline >= 0.7.4
+- mtl
+- network
+- text
+- websockets >= 0.12
+- wuss
+
+library:
+  source-dirs: src
+
+executables:
+  ws:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -Wall
+    - -with-rtsopts=-N
+    dependencies:
+    - ws
+    - attoparsec
+    - attoparsec-uri
+    - exceptions
+    - optparse-applicative
+    - text
+    - strict
+    - vector

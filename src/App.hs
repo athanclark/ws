@@ -7,7 +7,8 @@ module App where
 
 import App.Types (AppM, Env (envSecure, envHost, envPort, envPath))
 
-import Network.WebSockets (ClientApp, DataMessage (Text, Binary), ConnectionException (CloseRequest, ConnectionClosed, ParseException), runClient, receiveDataMessage, sendTextData, sendClose)
+import Network.WebSockets
+  (ClientApp, DataMessage (..), ConnectionException (..), runClient, receiveDataMessage, sendTextData, sendClose)
 import Wuss (runSecureClient)
 
 import qualified Data.Text                  as T
@@ -64,7 +65,7 @@ app = do
       let listen = forever $ do
             message <- receiveDataMessage conn
             let bs = case message of
-                      Text   x -> x
+                      Text x _ -> x
                       Binary x -> x
             print' $ case LT.decodeUtf8' bs of
               Left e -> "[Warn] UTF8 Decode Error: " ++ show e
@@ -96,4 +97,7 @@ handleConnException print' e =
       exitFailure
     ParseException s -> do
       print' $ "[Error] Websocket stream parse failure: " ++ s
+      exitFailure
+    UnicodeException s -> do
+      print' $ "[Error] Websocket couldn't parse unicode: " ++ s
       exitFailure

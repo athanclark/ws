@@ -39,7 +39,6 @@ runAppM env x = runReaderT (runInputT defaultSettings x) env
 
 data InitException
   = URIParseException String
-  | NoURIAuthority String
   deriving (Generic, Show)
 
 instance Exception InitException
@@ -50,7 +49,4 @@ handleInitException e =
   case e of
     URIParseException u -> do
       hPutStr stderr $ "Error: not a valid URI string - `" ++ u ++ "`"
-      exitFailure
-    NoURIAuthority u -> do
-      hPutStr stderr $ "Error: no URI authority - `" ++ u ++ "`"
       exitFailure
