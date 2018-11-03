@@ -1,5 +1,5 @@
 name:                ws
-version:             0.0.4
+version:             0.0.5
 github:              athanclark/ws
 license:             BSD3
 author:              "Athan Clark"
@@ -21,7 +21,7 @@ description:         Please see the README on Github at <https://git.localcookin
 
 dependencies:
 - base >= 4.7 && < 5
-- attoparsec-uri
+- attoparsec-uri >= 0.0.6
 - async
 - bytestring
 - exceptions

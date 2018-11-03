@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b6402f73c4dc03d95debbd67a2f16770b5dac6fc20c70e0bfa61dcc04a2950f4
+-- hash: 7af4ccf057d75a84a8d2b430798552ef44c2455784fcbffc637f3c8bf855bc59
 
 name:           ws
 version:        0.0.4
@@ -37,7 +37,7 @@ library
   ghc-options: -Wall
   build-depends:
       async
-    , attoparsec-uri
+    , attoparsec-uri >=0.0.6
     , base >=4.7 && <5
     , bytestring
     , exceptions

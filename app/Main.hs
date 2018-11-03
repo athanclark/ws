@@ -88,14 +88,20 @@ appOptsToEnv (AppOpts mu) = do
                   | uriScheme == Strict.Just "wss" -> 433
                   | otherwise -> 80
                 Strict.Just p -> fromIntegral p
-              path' = T.unpack $
-                "/" <> T.intercalate "/" (V.toList uriPath) <>
-                ( if V.null uriQuery
-                  then ""
-                  else "?" <> T.intercalate "&" ((\(k :!: mv) -> k <> Strict.maybe "" ("=" <>) mv) <$> V.toList uriQuery)
-                )
+              path' = case uriPath of
+                Strict.Nothing
+                  -> Strict.Nothing
+                Strict.Just uriPath'
+                  -> Strict.Just $ T.unpack $
+                        "/" <> T.intercalate "/" (V.toList uriPath') <>
+                        ( if V.null uriQuery
+                          then ""
+                          else "?" <> T.intercalate "&" ((\(k :!: mv) -> k <> Strict.maybe "" ("=" <>) mv) <$> V.toList uriQuery)
+                        )
           in  pure Env { envHost   = host
                        , envPort   = port
-                       , envPath   = path'
+                       , envPath   = case path' of
+                           Strict.Nothing -> ""
+                           Strict.Just x -> x
                        , envSecure = uriScheme == Strict.Just "wss"
                        }
