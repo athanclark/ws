@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7af4ccf057d75a84a8d2b430798552ef44c2455784fcbffc637f3c8bf855bc59
+-- hash: 1e0b3978e09bab9b1ca1ae88ade2d3c827cf4b771cc6e914a438477eace47d3d
 
 name:           ws
-version:        0.0.4
+version:        0.0.5
 synopsis:       A simple CLI utility for interacting with a websocket
 description:    Please see the README on Github at <https://git.localcooking.com/tooling/ws#readme>
 category:       Web
