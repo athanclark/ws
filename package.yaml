@@ -1,9 +1,9 @@
 name:                ws
-version:             0.0.5
+version:             0.0.6
 github:              athanclark/ws
 license:             BSD3
 author:              "Athan Clark"
-maintainer:          "athan.clark@localcooking.com"
+maintainer:          "athan.clark@gmail.com"
 copyright:           "2018 Athan Clark"
 category:            Web
 synopsis:            A simple CLI utility for interacting with a websocket
@@ -21,7 +21,7 @@ description:         Please see the README on Github at <https://git.localcookin
 
 dependencies:
 - base >= 4.7 && < 5
-- attoparsec-uri >= 0.0.6
+- attoparsec-uri >= 0.0.9
 - async
 - bytestring
 - exceptions

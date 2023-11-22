@@ -14,7 +14,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.Strict.Maybe as Strict
 import Data.Strict.Tuple (Pair (..))
-import Data.URI (URI (..), parseURI)
+import Data.URI (URI (..), parseURI, DirOrFile (Dir))
 import Data.URI.Auth (URIAuth (..), printURIAuth)
 import Data.Attoparsec.Text (parseOnly)
 
@@ -76,13 +76,19 @@ appOptsToEnv (AppOpts mu) = do
       { uriScheme
       , uriAuthority = URIAuth
         { uriAuthUser
+        , uriAuthPassword
         , uriAuthHost
         , uriAuthPort
         }
       , uriPath
       , uriQuery
       } ->
-          let host = T.unpack $ printURIAuth URIAuth {uriAuthUser,uriAuthHost,uriAuthPort = Strict.Nothing}
+          let host = T.unpack $ printURIAuth URIAuth
+                        { uriAuthUser
+                        , uriAuthPassword
+                        , uriAuthHost
+                        , uriAuthPort = Strict.Nothing
+                        }
               port = case uriAuthPort of
                 Strict.Nothing
                   | uriScheme == Strict.Just "wss" -> 433
@@ -91,9 +97,13 @@ appOptsToEnv (AppOpts mu) = do
               path' = case uriPath of
                 Strict.Nothing
                   -> Strict.Nothing
-                Strict.Just uriPath'
+                Strict.Just (uriPath', dirOrFile)
                   -> Strict.Just $ T.unpack $
                         "/" <> T.intercalate "/" (V.toList uriPath') <>
+                        ( case dirOrFile of
+                            Dir -> "/"
+                            _ -> ""
+                        ) <>
                         ( if V.null uriQuery
                           then ""
                           else "?" <> T.intercalate "&" ((\(k :!: mv) -> k <> Strict.maybe "" ("=" <>) mv) <$> V.toList uriQuery)

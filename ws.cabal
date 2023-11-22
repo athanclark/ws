@@ -1,24 +1,24 @@
--- This file has been generated from package.yaml by hpack version 0.21.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1e0b3978e09bab9b1ca1ae88ade2d3c827cf4b771cc6e914a438477eace47d3d
+-- hash: 5a8a66875e13ead9d5c15c041f9bea2953e4c6d7497b5bff2d46ea28fa9af53e
 
 name:           ws
-version:        0.0.5
+version:        0.0.6
 synopsis:       A simple CLI utility for interacting with a websocket
 description:    Please see the README on Github at <https://git.localcooking.com/tooling/ws#readme>
 category:       Web
 homepage:       https://github.com/athanclark/ws#readme
 bug-reports:    https://github.com/athanclark/ws/issues
 author:         Athan Clark
-maintainer:     athan.clark@localcooking.com
+maintainer:     athan.clark@gmail.com
 copyright:      2018 Athan Clark
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
-
 extra-source-files:
     README.md
 
@@ -37,7 +37,7 @@ library
   ghc-options: -Wall
   build-depends:
       async
-    , attoparsec-uri >=0.0.6
+    , attoparsec-uri >=0.0.9
     , base >=4.7 && <5
     , bytestring
     , exceptions
